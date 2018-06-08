@@ -1,9 +1,9 @@
 from bs4 import BeautifulSoup
-from time import sleep
-from datetime import datetime
 from selenium import webdriver
 from openpyxl import Workbook
 
+from time import sleep
+from datetime import datetime
 
 
 wb = Workbook()
@@ -14,19 +14,21 @@ ws.append(["TimeStamp",
                "Game Score",
                "Player1 Name",
                "Player2 Name",
-               "Player1 Odds",
-               "Player2 Odds"
+               "Player1 Odds Bet365",
+               "Player2 Odds Bet365"
                ]
               )
 URL = "https://mobile.bet365.com/#type=InPlay;key=13;ip=1;lng=1"
-
+SLEEP = 5
+ITERATIONS = 10
+driver = webdriver.Chrome()
 
 def scraping_bet365():
-    driver = webdriver.Chrome()
+
     driver.get(URL)
     driver.minimize_window()
 
-    sleep(5)
+    sleep(SLEEP)
     data = driver.page_source
     bsObj = BeautifulSoup(data, "html.parser")
 
@@ -49,8 +51,9 @@ def scraping_bet365():
         point3_player2 = points[5].get_text()
 
         odds = card.find_all("span", class_="ipo-Participant_OppOdds ")
-        odds_player1 = odds[0].get_text()
-        odds_player2 = odds[1].get_text()
+
+        odds_player1 = str(int(str(odds[0].get_text()).split('/')[0]) / int(str(odds[0].get_text()).split('/')[1]))[:4]
+        odds_player2 = str(int(str(odds[1].get_text()).split('/')[0]) / int(str(odds[1].get_text()).split('/')[1]))[:4]
 
         ws.append([str(datetime.now()),
                    "{}-{}".format(point1_player1, point1_player2),
@@ -60,17 +63,16 @@ def scraping_bet365():
                    odds_player1, odds_player2
                    ]
                   )
-        #driver.close()
 
-step = 0
+iter = 0
 print('Get URL --> {}'.format(URL))
-while step < 3:
-    print('Step --> {}'.format(step))
+while iter <= ITERATIONS:
+    print('Wait time {}s. --> {}'.format(SLEEP, iter))
     scraping_bet365()
-    step += 1
+    iter += 1
 
 wb.save('Odds_Bet365.xlsx')
-
+driver.close()
 
 
 
