@@ -1,30 +1,34 @@
-from bs4 import BeautifulSoup
-from selenium import webdriver
+from requests.exceptions import HTTPError
+import requests
 
-from time import sleep
-from datetime import datetime
 
-URL_BATFAIR = "https://www.betfair.com/exchange/plus/tennis/inplay"
-SLEEP = 5
-ITERATIONS = 10
-driver = webdriver.Chrome()
+URL = url = "https://api.betfair.com/exchange/betting/json-rpc/v1"
+jsonrpc_req = '{"jsonrpc": "2.0", ' \
+              '"method": "SportsAPING/v1.0/listEvents", ' \
+              '"params": {"filter":{"eventTypeIds": ["2"], "inPlayOnly" : true }}, "id": 1}'
+headers = {'X-Application': 'OclZSgXWwsQNpQky', 'X-Authentication': 'GKk0sa/ZVCqOcxeWm34+0FYO6HH9ft6skRaFpKhZz0E=', 'content-type': 'application/json'}
+ 
+def get_tennis_event_ids_list(jsonrpc_req):
+    event_ids = []
+    try:
+        req = requests.post(url, jsonrpc_req, headers=headers)
+        for event in req.json()['result']:
+            d = event['event']
+            event_ids.append(d["id"])
+        return event_ids
 
-def scraping_betfair():
+    except HTTPError:
+        print('Not a valid operation from the service ' + str(url))
+        exit()
 
-    driver.get(URL_BATFAIR)
-    driver.minimize_window()
+event_ids_list = get_tennis_event_ids_list(jsonrpc_req)
 
-    sleep(SLEEP)
-    data = driver.page_source
-    bsObj = BeautifulSoup(data, "html.parser")
+jsonrpc = '{"jsonrpc": "2.0", ' \
+              '"method": "SportsAPING/v1.0/listMarketCatalogue", ' \
+              '"params": {"filter":{"eventIds": "[{}]"}}, "id": 1}'.format(event_ids_list[0])
 
-    competitions = bsObj.find_all("table", class_="coupon-table")
+def get_market_id(jsonrpc):
+    req = requests.post(url, jsonrpc, headers=headers)
+    return req.json()
 
-    for card in competitions:
-        players_card = card.find_all("li")
-        player1 = players_card[0].get_text()
-        player2 = players_card[1].get_text()
-        print(player1, player2)
-
-scraping_betfair()
-driver.close()
+print(get_market_id(jsonrpc))
