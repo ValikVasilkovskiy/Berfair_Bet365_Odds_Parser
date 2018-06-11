@@ -63,8 +63,7 @@ def getMarketCatalogue():
                                '{"filter":' \
                                     '{' \
                                         '"eventTypeIds":["2"],' \
-                                        '"marketStartTime":{"from":"' + now + '"},' \
-                                                                              '},' \
+                                        '"inPlayOnly" : true},' \
                                         '"sort":"MAXIMUM_TRADED",' \
                                         '"maxResults":"100",' \
                                         '"marketBettingTypes": "LINE",' \
@@ -78,7 +77,6 @@ def getMarketCatalogue():
 
     try:
         market_catalouge_results = market_catalouge_loads['result']
-        print(market_catalouge_results)
         for market in market_catalouge_results:
             if market['marketName'] == 'Match Odds':
                 market_id = market['marketId']
@@ -91,11 +89,11 @@ def getMarketCatalogue():
         print ('Exception from API-NG' + str(market_catalouge_loads['error']))
         exit()
 
-marketCatalogresult = getMarketCatalogue()
-#print(marketCatalogresult)
+MarketCatalogListResult = getMarketCatalogue()
 
-#for market in marketCatalogresult:
-#    print(market)
+
+for market in MarketCatalogListResult:
+    print(market)
 
 
 def getMarketId(marketCatalogueResult):
@@ -107,7 +105,7 @@ def getMarketBetLine():
     bet_line_req = '{"jsonrpc": "2.0",' \
                    ' "method": "SportsAPING/v1.0/listMarketBook", ' \
                    '"params": {' \
-                   '"marketIds":["1.144612640"],' \
+                   '"marketIds":["1.144583612"],' \
                    '"priceProjection":{' \
                    '"priceData":["EX_BEST_OFFERS"]}}, "id": 1}'
 
@@ -124,7 +122,7 @@ def getMarketBetLine():
         print ('Exception from API-NG' + str(bet_line_loads['error']))
         exit()
 
-#getMarketBetLine()
+getMarketBetLine()
 
 def test():
     market_catalogue_req = '{"jsonrpc": "2.0", ' \
@@ -136,5 +134,5 @@ def test():
     data = requests.post(url, market_catalogue_req, headers)
     return data.json()
 
-print(test())
+
 
