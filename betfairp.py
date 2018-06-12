@@ -5,7 +5,7 @@ import urllib
 from urllib import request
 from urllib.error import HTTPError
 import json
-import datetime
+
 
 
 dir = os.path.abspath(os.path.dirname(__file__))
@@ -29,29 +29,6 @@ def callAping(jsonrpc_req):
         print ('Not a valid operation from the service ' + str(url))
         exit()
 
-def getTennisEventIdsList():
-    event_ids = []
-    event_list_req = '{"jsonrpc": "2.0", ' \
-              '"method": "SportsAPING/v1.0/listEvents", ' \
-              '"params": {"filter":{' \
-                     '"eventTypeIds": ["2"], ' \
-                     '"inPlayOnly" : true }' \
-                     '}, "id": 1}'
-
-    eventListResponse = callAping(event_list_req)
-    eventListLoads = json.loads(eventListResponse)
-    try:
-        for event in eventListLoads['result']:
-            d = event['event']
-            if not str(d["name"]).startswith('Set'):
-                event_ids.append([d['id'], d['name']])
-        return event_ids
-    except:
-        print ('Exception from API-NG' + str(eventListLoads['error']))
-        exit()
-
-EventList = getTennisEventIdsList()
-
 def getMarketBetLine(marketId):
     bet_line_req = '{"jsonrpc": "2.0",' \
                    ' "method": "SportsAPING/v1.0/listMarketBook", ' \
@@ -66,7 +43,9 @@ def getMarketBetLine(marketId):
             bet_line_results = bet_line_loads['result']
             for result_part in bet_line_results:
                 for runners in result_part['runners']:
-                    print(runners['ex'])
+                    if runners['ex']:
+                        print('BACK: {}'.format(runners['ex']['availableToBack'][-1]))
+                        print('LAY: {}'.format(runners['ex']['availableToLay'][0]))
 
     except:
         print ('Exception from API-NG' + str(bet_line_loads['error']))
@@ -102,7 +81,7 @@ def getMarketCatalogueId():
                 event_name = event['name']
                 market_id_name.append([market_id, event_name])
                 market_id_only.append(market_id)
-                print(market_id)
+                print(market_id, event_name)
                 getMarketBetLine(market_id)
         return market_id_only
     except:
