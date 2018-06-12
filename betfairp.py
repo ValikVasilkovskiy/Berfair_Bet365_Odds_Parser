@@ -30,6 +30,7 @@ def callAping(jsonrpc_req):
         exit()
 
 def getMarketBetLine(marketId):
+    match_odds = []
     bet_line_req = '{"jsonrpc": "2.0",' \
                    ' "method": "SportsAPING/v1.0/listMarketBook", ' \
                    '"params": {' \
@@ -45,22 +46,20 @@ def getMarketBetLine(marketId):
                 if result_part['runners']:
                     for runners in result_part['runners']:
                         if runners['ex']['availableToBack'] and runners['ex']['availableToLay']:
-                            print('BACK: {}'.format(runners['ex']['availableToBack'][-1]),
-                                 'LAY: {}'.format(runners['ex']['availableToLay'][0]))
+                            match_odds.extend([[runners['ex']['availableToBack'][-1]],
+                                              [runners['ex']['availableToLay'][0]]])
                         else:
-                            print('BACK: {}'.format(runners['ex']['availableToBack']),
-                                 'LAY: {}'.format(runners['ex']['availableToLay']))
+                            match_odds.append([[runners['ex']['availableToBack']],
+                                               [runners['ex']['availableToLay']]])
     except:
         print ('Exception from API-NG' + str(bet_line_loads['error']))
         exit()
+    return match_odds
 
 listCompetitionResult = getListCompetition()
 cardCompetitionResult = getCardCompetitionData(listCompetitionResult)
-for i in cardCompetitionResult:
-    print(i)
 
 def getMarketCatalogueId():
-    market_id_name = []
     market_id_only = []
     market_catalogue_req = '{"jsonrpc": "2.0", ' \
                                '"method": "SportsAPING/v1.0/listMarketCatalogue", ' \
@@ -87,10 +86,16 @@ def getMarketCatalogueId():
                 market_id = market['marketId']
                 event = market['event']
                 event_name = event['name']
-                market_id_name.append([market_id, event_name])
-                market_id_only.append(market_id)
-                print(market_id, event_name)
-                getMarketBetLine(market_id)
+                runner = str(event_name).split(' ')[0]
+                if len(runner) <= 1:
+                    runner = str(event_name).split(' ')[1]
+                for card in cardCompetitionResult:
+                    for data_card in card[4:6]:
+                        if runner in data_card:
+                            card.extend(getMarketBetLine(market_id))
+                            print(card)
+                            #print(getMarketBetLine(market_id))
+                            break
         return market_id_only
     except:
         print ('Exception from API-NG' + str(market_catalouge_loads['error']))
