@@ -10,7 +10,7 @@
 5. $pip inslall -r requirements.txt
 6. $python3 betfairp.py
 
-7. In directory \data\ create file betfair.xlsx
+7. In directory \data\ was create file betfair.xlsx
 8. After close webdriver open file, filter data by column and explore result.  
 
 
