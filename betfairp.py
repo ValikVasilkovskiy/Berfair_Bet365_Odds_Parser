@@ -6,7 +6,7 @@ from urllib import request
 from urllib.error import HTTPError
 import json
 
-
+from bet356 import getCardCompetitionData, getListCompetition
 
 dir = os.path.abspath(os.path.dirname(__file__))
 key = 'betfair.pem'
@@ -42,14 +42,22 @@ def getMarketBetLine(marketId):
     try:
             bet_line_results = bet_line_loads['result']
             for result_part in bet_line_results:
-                for runners in result_part['runners']:
-                    if runners['ex']:
-                        print('BACK: {}'.format(runners['ex']['availableToBack'][-1]))
-                        print('LAY: {}'.format(runners['ex']['availableToLay'][0]))
-
+                if result_part['runners']:
+                    for runners in result_part['runners']:
+                        if runners['ex']['availableToBack'] and runners['ex']['availableToLay']:
+                            print('BACK: {}'.format(runners['ex']['availableToBack'][-1]),
+                                 'LAY: {}'.format(runners['ex']['availableToLay'][0]))
+                        else:
+                            print('BACK: {}'.format(runners['ex']['availableToBack']),
+                                 'LAY: {}'.format(runners['ex']['availableToLay']))
     except:
         print ('Exception from API-NG' + str(bet_line_loads['error']))
         exit()
+
+listCompetitionResult = getListCompetition()
+cardCompetitionResult = getCardCompetitionData(listCompetitionResult)
+for i in cardCompetitionResult:
+    print(i)
 
 def getMarketCatalogueId():
     market_id_name = []

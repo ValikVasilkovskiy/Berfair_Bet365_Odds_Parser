@@ -36,9 +36,9 @@ def getListCompetition():
     driver.close()
     return competitions
 
-ListCompetitionResult = getListCompetition()
 
 def getCardCompetitionData(competition_list):
+    tennisInPlayResult = []
     if competition_list:
         for card_list in competition_list:
             for card in card_list.find_all("div", class_="ipo-Fixture ipo-Fixture_NoTimings ipo-Fixture_ShortScores "):
@@ -62,17 +62,19 @@ def getCardCompetitionData(competition_list):
                 else:
                     odds_player1 = odds[0].get_text()
                     odds_player2 = odds[1].get_text()
-                print([str(datetime.now()),
-                    "{}-{}".format(point1_player1, point1_player2),
-                    "{}-{}".format(point2_player1, point2_player2),
-                    "{}-{}".format(point3_player1, point3_player2),
-                    player1, player2,
-                    odds_player1, odds_player2
-                    ]
-                    )
+
+                tennisInPlayResult.append([str(datetime.now()),
+                                            "{}-{}".format(point1_player1, point1_player2),
+                                            "{}-{}".format(point2_player1, point2_player2),
+                                            "{}-{}".format(point3_player1, point3_player2),
+                                            player1, player2,
+                                            odds_player1, odds_player2
+                                            ]
+                                           )
+    return tennisInPlayResult
+
 #wb.save('Odds_Bet365.xlsx')
 
-getCardCompetitionData(ListCompetitionResult)
 
 
 
