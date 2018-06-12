@@ -6,7 +6,7 @@ from urllib import request
 from urllib.error import HTTPError
 import json
 import datetime
-import requests
+
 
 dir = os.path.abspath(os.path.dirname(__file__))
 key = 'betfair.pem'
@@ -26,7 +26,7 @@ def callAping(jsonrpc_req):
         jsonResponse = response.read()
         return jsonResponse.decode('utf-8')
     except HTTPError:
-        print ('Oops not a valid operation from the service ' + str(url))
+        print ('Not a valid operation from the service ' + str(url))
         exit()
 
 def getTennisEventIdsList():
@@ -51,12 +51,30 @@ def getTennisEventIdsList():
         exit()
 
 EventList = getTennisEventIdsList()
-print(EventList)
 
+def getMarketBetLine(marketId):
+    bet_line_req = '{"jsonrpc": "2.0",' \
+                   ' "method": "SportsAPING/v1.0/listMarketBook", ' \
+                   '"params": {' \
+                   '"marketIds":["'+  marketId  +'"],' \
+                   '"priceProjection":{' \
+                   '"priceData":["EX_BEST_OFFERS"]}}, "id": 1}'
 
-def getMarketCatalogue():
-    market_data = []
-    now = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ')
+    bet_line_response = callAping(bet_line_req)
+    bet_line_loads = json.loads(bet_line_response)
+    try:
+            bet_line_results = bet_line_loads['result']
+            for result_part in bet_line_results:
+                for runners in result_part['runners']:
+                    print(runners['ex'])
+
+    except:
+        print ('Exception from API-NG' + str(bet_line_loads['error']))
+        exit()
+
+def getMarketCatalogueId():
+    market_id_name = []
+    market_id_only = []
     market_catalogue_req = '{"jsonrpc": "2.0", ' \
                                '"method": "SportsAPING/v1.0/listMarketCatalogue", ' \
                                '"params": ' \
@@ -81,58 +99,24 @@ def getMarketCatalogue():
             if market['marketName'] == 'Match Odds':
                 market_id = market['marketId']
                 event = market['event']
-                event_id = event['id']
                 event_name = event['name']
-                market_data.append([market_id, event_id, event_name])
-        return market_data
+                market_id_name.append([market_id, event_name])
+                market_id_only.append(market_id)
+                print(market_id)
+                getMarketBetLine(market_id)
+        return market_id_only
     except:
         print ('Exception from API-NG' + str(market_catalouge_loads['error']))
         exit()
 
-MarketCatalogListResult = getMarketCatalogue()
+getMarketCatalogueId()
 
 
-for market in MarketCatalogListResult:
-    print(market)
 
 
-def getMarketId(marketCatalogueResult):
-    if( marketCatalogueResult is not None):
-        for market in marketCatalogueResult:
-            return market['marketId']
 
-def getMarketBetLine():
-    bet_line_req = '{"jsonrpc": "2.0",' \
-                   ' "method": "SportsAPING/v1.0/listMarketBook", ' \
-                   '"params": {' \
-                   '"marketIds":["1.144583612"],' \
-                   '"priceProjection":{' \
-                   '"priceData":["EX_BEST_OFFERS"]}}, "id": 1}'
 
-    bet_line_response = callAping(bet_line_req)
-    bet_line_loads = json.loads(bet_line_response)
-    try:
-            bet_line_results = bet_line_loads['result']
-            for result_part in bet_line_results:
-                for runners in result_part['runners']:
-                    print(runners['ex'])
 
-            return bet_line_results
-    except:
-        print ('Exception from API-NG' + str(bet_line_loads['error']))
-        exit()
-
-getMarketBetLine()
-
-def test():
-    market_catalogue_req = '{"jsonrpc": "2.0", ' \
-                               '"method": "SportsAPING/v1.0/listMarketCatalogue", ' \
-                               '"params": {"filter": ' \
-                                                '{"eventIds" : "28761545"}}, ' \
-                                        '"maxResults": "50",' \
-                                        '"marketProjection": ["EVENT"], "id": 1}'
-    data = requests.post(url, market_catalogue_req, headers)
-    return data.json()
 
 
 
