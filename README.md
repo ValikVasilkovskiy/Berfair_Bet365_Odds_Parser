@@ -1,7 +1,7 @@
 # Berfair_Bet365_Odds_Parser
 
 1. Download http://chromedriver.chromium.org/downloads
-2. Add wey to the directory <chromedriver> in PATH
+2. Add way to the directory <chromedriver> in PATH
 
 3. Clone repository to work station
 
