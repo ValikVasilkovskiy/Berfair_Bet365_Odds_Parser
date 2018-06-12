@@ -1,16 +1,21 @@
 import os
 from betfair import Betfair
+from openpyxl import Workbook
 
 import urllib
 from urllib import request
 from urllib.error import HTTPError
 import json
 
-from bet356 import getCardCompetitionData, getListCompetition
+from bet356 import getCardCompetitionData, getListCompetition, driver
 
+ITERATION = 40
+
+# connect to API and keep alive session key
 dir = os.path.abspath(os.path.dirname(__file__))
 key = 'betfair.pem'
 base_dir = dir + '\cert\\{}'.format(key)
+out_file_dir = dir + '\data\\'
 
 client = Betfair('OclZSgXWwsQNpQky', '{}'.format(base_dir))
 client.login(username='ValliRich', password='k6Nawras')
@@ -46,21 +51,22 @@ def getMarketBetLine(marketId):
                 if result_part['runners']:
                     for runners in result_part['runners']:
                         if runners['ex']['availableToBack'] and runners['ex']['availableToLay']:
-                            match_odds.extend([[runners['ex']['availableToBack'][-1]],
-                                              [runners['ex']['availableToLay'][0]]])
+                            match_odds.extend([runners['ex']['availableToBack'][-1]['price'],
+                                              runners['ex']['availableToLay'][0]['price']])
+                            match_odds.extend([runners['ex']['availableToBack'][-1]['size'],
+                                              runners['ex']['availableToLay'][0]['size']])
                         else:
-                            match_odds.append([[runners['ex']['availableToBack']],
-                                               [runners['ex']['availableToLay']]])
+                            match_odds.extend(["0", "0", "0", "0"])
     except:
         print ('Exception from API-NG' + str(bet_line_loads['error']))
         exit()
     return match_odds
 
-listCompetitionResult = getListCompetition()
-cardCompetitionResult = getCardCompetitionData(listCompetitionResult)
 
 def getMarketCatalogueId():
-    market_id_only = []
+    listCompetitionResult = getListCompetition()
+    cardCompetitionResult = getCardCompetitionData(listCompetitionResult)
+    cardList = []
     market_catalogue_req = '{"jsonrpc": "2.0", ' \
                                '"method": "SportsAPING/v1.0/listMarketCatalogue", ' \
                                '"params": ' \
@@ -89,19 +95,49 @@ def getMarketCatalogueId():
                 runner = str(event_name).split(' ')[0]
                 if len(runner) <= 1:
                     runner = str(event_name).split(' ')[1]
+
                 for card in cardCompetitionResult:
                     for data_card in card[4:6]:
                         if runner in data_card:
                             card.extend(getMarketBetLine(market_id))
-                            print(card)
-                            #print(getMarketBetLine(market_id))
-                            break
-        return market_id_only
+                            cardList.append(card)
     except:
         print ('Exception from API-NG' + str(market_catalouge_loads['error']))
         exit()
+    return cardList
 
-getMarketCatalogueId()
+# out data to file
+wb = Workbook()
+ws = wb.create_sheet("ODDS")
+ws.append([
+               "TimeStamp",
+               "Match Score",
+               "Set Score",
+               "Game Score",
+               "Player1 Name",
+               "Player2 Name",
+               "Player1 Odds Bet365",
+               "Player2 Odds Bet365",
+               "Player1 Back Odds Betfair",
+               "Player1 Lay Odds Betfair",
+               "Player2 Back Odds Betfair",
+               "Player2 Lay Odds Betfair",
+               "Player1 Back Stake Betfair",
+               "Player1 lay Stake Betfair",
+               "Player2 Back Stake Betfair",
+               "Player2 Lay Stake Betfair"
+              ])
+n = 0
+print("Start...")
+print("Open WebDriver...")
+while n <= ITERATION:
+    print('Iteration --> {}'.format(n))
+    for event in getMarketCatalogueId():
+        ws.append(event)
+        wb.save('{}betfair.xlsx'.format(out_file_dir))
+    n += 1
+print("Close WebDriver...")
+driver.close()
 
 
 

@@ -1,30 +1,14 @@
 from bs4 import BeautifulSoup
 from selenium import webdriver
-from openpyxl import Workbook
 
 from time import sleep
 from datetime import datetime
 
-
-#wb = Workbook()
-#ws = wb.create_sheet("Bet356")
-#ws.append(["TimeStamp",
-#               "Match Score",
-#               "Set Score",
-#               "Game Score",
-#               "Player1 Name",
-#               "Player2 Name",
-#               "Player1 Odds Bet365",
-#               "Player2 Odds Bet365"
-#               ]
-#              )
 URL = "https://mobile.bet365.com/#type=InPlay;key=13;ip=1;lng=1"
 SLEEP = 5
-ITERATIONS = 10
 driver = webdriver.Chrome()
 
 def getListCompetition():
-
     driver.get(URL)
     driver.minimize_window()
 
@@ -33,7 +17,7 @@ def getListCompetition():
     bsObj = BeautifulSoup(data, "html.parser")
 
     competitions = bsObj.find_all("div", class_="ipo-CompetitionBase ")
-    driver.close()
+    #driver.close()
     return competitions
 
 
@@ -73,7 +57,6 @@ def getCardCompetitionData(competition_list):
                                            )
     return tennisInPlayResult
 
-#wb.save('Odds_Bet365.xlsx')
 
 
 
