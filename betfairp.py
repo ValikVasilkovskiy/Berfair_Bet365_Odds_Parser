@@ -9,13 +9,15 @@ import json
 
 from bet356 import getCardCompetitionData, getListCompetition, driver
 
-ITERATION = 40
+ITERATION = 50
 
 # connect to API and keep alive session key
 dir = os.path.abspath(os.path.dirname(__file__))
 key = 'betfair.pem'
-base_dir = dir + '\cert\\{}'.format(key)
-out_file_dir = dir + '\data\\'
+out_file_name = 'betfeir.xlsx'
+base_dir = os.path.join(dir, 'cert', key)
+out_file_dir = os.path.join(dir, 'data', out_file_name)
+
 
 client = Betfair('OclZSgXWwsQNpQky', '{}'.format(base_dir))
 client.login(username='ValliRich', password='k6Nawras')
@@ -134,7 +136,7 @@ while n <= ITERATION:
     print('Iteration --> {}'.format(n))
     for event in getMarketCatalogueId():
         ws.append(event)
-        wb.save('{}betfair.xlsx'.format(out_file_dir))
+        wb.save(out_file_dir)
     n += 1
 print("Close WebDriver...")
 driver.close()
